@@ -1,0 +1,63 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+env:
+  PRODUCT_NAME: juce-build-windows
+  BUILDER_IMAGE: chocolatey/choco:v2.2.0-windows
+  BUILDER_IMAGE_FILE: choco.tar
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Restore builder image cache
+      id: cache-builder-image
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.BUILDER_IMAGE_FILE }}
+        key: ${{ env.BUILDER_IMAGE }}
+
+    - name: Pull builder image
+      if: steps.cache-builder-image.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        docker login \
+          --username ${{ github.repository_owner }} \
+          --password ${{ secrets._GITHUB_PAT }} \
+          ghcr.io
+
+        docker pull ${{ env.BUILDER_IMAGE }}
+
+        docker save \
+          -o ${{ env.BUILDER_IMAGE_FILE }} \
+          ${{ env.BUILDER_IMAGE }}
+
+    - name: Load builder image cache
+      if: steps.cache-builder-image.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        docker load -i ${{ env.BUILDER_IMAGE_FILE }}
+
+    - name: Build image
+      shell: bash
+      run: |
+        tag="ghcr.io/${{ github.repository }}/${{ env.PRODUCT_NAME }}:${{ github.ref_name }}"
+
+        docker build \
+          --file=./Dockerfile \
+          --tag="${tag,,}" \
+          .
+
+    - name: Push image
+      shell: bash
+      run: |
+        tag="ghcr.io/${{ github.repository }}/${{ env.PRODUCT_NAME }}:${{ github.ref_name }}"
+        docker push "${tag,,}"
