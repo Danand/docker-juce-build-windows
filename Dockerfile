@@ -18,4 +18,6 @@ RUN choco install --yes packages.config
 
 COPY .\Entrypoint.ps1 .
 
+ENV JUCE_REV_RECOMMENDED "69795dc8e589a9eb5df251b6dd994859bf7b3fab"
+
 ENTRYPOINT [ "Entrypoint.ps1" ]

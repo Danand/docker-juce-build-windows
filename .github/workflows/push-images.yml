@@ -7,25 +7,25 @@ on:
 
 env:
   PRODUCT_NAME: juce-build-windows
-  BUILDER_IMAGE: chocolatey/choco:v2.2.0-windows
-  BUILDER_IMAGE_FILE: choco.tar
+  BASE_IMAGE: mcr.microsoft.com/dotnet/framework/runtime:4.8-windowsservercore-ltsc2019
+  BASE_IMAGE_FILE: windowsservercore.tar
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Restore builder image cache
+    - name: Restore base image cache
       id: cache-builder-image
       uses: actions/cache@v3
       with:
-        path: ${{ env.BUILDER_IMAGE_FILE }}
-        key: ${{ env.BUILDER_IMAGE }}
+        path: ${{ env.BASE_IMAGE_FILE }}
+        key: ${{ env.BASE_IMAGE }}
 
-    - name: Pull builder image
+    - name: Pull base image
       if: steps.cache-builder-image.outputs.cache-hit != 'true'
       shell: bash
       run: |
@@ -34,17 +34,17 @@ jobs:
           --password ${{ secrets._GITHUB_PAT }} \
           ghcr.io
 
-        docker pull ${{ env.BUILDER_IMAGE }}
+        docker pull ${{ env.BASE_IMAGE }}
 
         docker save \
-          -o ${{ env.BUILDER_IMAGE_FILE }} \
-          ${{ env.BUILDER_IMAGE }}
+          -o ${{ env.BASE_IMAGE_FILE }} \
+          ${{ env.BASE_IMAGE }}
 
-    - name: Load builder image cache
+    - name: Load base image cache
       if: steps.cache-builder-image.outputs.cache-hit == 'true'
       shell: bash
       run: |
-        docker load -i ${{ env.BUILDER_IMAGE_FILE }}
+        docker load -i ${{ env.BASE_IMAGE_FILE }}
 
     - name: Build image
       shell: bash
