@@ -19,9 +19,9 @@ Set-Location "${VOLUME_PROJECT_ROOT}"
 
 $project_path = "$(Get-Location)\$Env:JUCER_PROJECT"
 
-Push-Location "$VOLUME_JUCE\extras\Projucer\Builds\VisualStudio2017"
+Push-Location "$VOLUME_JUCE\extras\Projucer\Builds\VisualStudio2019"
 
-$msbuild = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2017\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
+$msbuild = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
 
 & $msbuild Projucer.sln
 
@@ -40,7 +40,7 @@ Receive-Job -Job $job
 Remove-Job -Job $job
 
 Pop-Location
-Push-Location "$VOLUME_PROJECT_ROOT\Builds\VisualStudio2017"
+Push-Location "$VOLUME_PROJECT_ROOT\Builds\VisualStudio2019"
 
 $solution_name = (Get-ChildItem "*.sln" | Select-Object -First 1).Name
 
